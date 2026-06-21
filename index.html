@@ -1,1669 +1,270 @@
 
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GradPath — Opportunities Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-
-<style>
-/* ═══════════════════════════════════════
-   DESIGN TOKENS
-═══════════════════════════════════════ */
-:root {
-  --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
-}
-
-[data-theme="dark"] {
-  --bg:          #080c14;
-  --bg2:         #0d1422;
-  --bg3:         #111927;
-  --surface:     #141e2e;
-  --surface2:    #1a2740;
-  --border:      rgba(99,179,237,0.12);
-  --glow:        rgba(56,139,253,0.18);
-  --glow-strong: rgba(56,139,253,0.45);
-  --text:        #e2ecf7;
-  --text2:       #8ba3c0;
-  --text3:       #4e6582;
-  --accent:      #3d8bff;
-  --accent2:     #1d6bff;
-  --job:         #22d3b8;
-  --job-bg:      rgba(34,211,184,0.1);
-  --job-glow:    rgba(34,211,184,0.3);
-  --scheme:      #818cf8;
-  --scheme-bg:   rgba(129,140,248,0.1);
-  --scheme-glow: rgba(129,140,248,0.3);
-  --schol:       #f59e0b;
-  --schol-bg:    rgba(245,158,11,0.1);
-  --schol-glow:  rgba(245,158,11,0.3);
-  --shadow:      0 8px 32px rgba(0,0,0,0.5);
-  --sidebar-w:   280px;
-}
-
-[data-theme="light"] {
-  --bg:          #f0f4fb;
-  --bg2:         #e8edf7;
-  --bg3:         #dde4f0;
-  --surface:     #ffffff;
-  --surface2:    #f5f8ff;
-  --border:      rgba(30,80,180,0.12);
-  --glow:        rgba(61,139,255,0.15);
-  --glow-strong: rgba(61,139,255,0.35);
-  --text:        #0d1a2e;
-  --text2:       #4a5e78;
-  --text3:       #8ba3c0;
-  --accent:      #1d5fdd;
-  --accent2:     #1248c2;
-  --job:         #059669;
-  --job-bg:      rgba(5,150,105,0.08);
-  --job-glow:    rgba(5,150,105,0.25);
-  --scheme:      #6366f1;
-  --scheme-bg:   rgba(99,102,241,0.08);
-  --scheme-glow: rgba(99,102,241,0.25);
-  --schol:       #b45309;
-  --schol-bg:    rgba(180,83,9,0.08);
-  --schol-glow:  rgba(180,83,9,0.25);
-  --shadow:      0 4px 24px rgba(0,40,120,0.09);
-  --sidebar-w:   280px;
-}
-
-*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior:smooth; }
-
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  display: flex;
-  min-height: 100vh;
-  overflow-x: hidden;
-  transition: background var(--transition), color var(--transition);
-}
-
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg2); }
-::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-
-/* ═══════════════════════════════════════
-   SIDEBAR
-═══════════════════════════════════════ */
-.sidebar {
-  width: var(--sidebar-w);
-  min-width: var(--sidebar-w);
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  transition: background var(--transition), border-color var(--transition);
-  z-index: 100;
-}
-
-.sidebar-header {
-  padding: 2rem 1.6rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-}
-
-.logo-icon {
-  width: 38px; height: 38px;
-  background: linear-gradient(135deg, var(--accent), var(--scheme));
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  font-size: 1.1rem;
-  flex-shrink: 0;
-  box-shadow: 0 4px 16px var(--glow);
-}
-
-.logo-text {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  background: linear-gradient(135deg, var(--accent), var(--scheme));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.sidebar-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 1.2rem;
-}
-
-.sidebar-body { padding: 1.5rem 1.4rem; flex: 1; }
-.filter-group { margin-bottom: 1.4rem; }
-
-.filter-label {
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--text3);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.filter-select,
-.filter-input {
-  width: 100%;
-  padding: 0.65rem 0.9rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.88rem;
-  outline: none;
-  transition: all var(--transition);
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-}
-
-.filter-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238ba3c0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 2rem;
-}
-
-.filter-select:focus,
-.filter-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--glow);
-  background: var(--surface2);
-}
-
-.chip-group { display: flex; flex-direction: column; gap: 0.5rem; }
-
-.chip {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.9rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text2);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition);
-  text-align: left;
-}
-
-.chip:hover { background: var(--surface); color: var(--text); }
-.chip.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
-
-.chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-.chip-count {
-  margin-left: auto;
-  font-size: 0.7rem;
-  background: var(--bg3);
-  padding: 1px 7px;
-  border-radius: 99px;
-  color: var(--text3);
-}
-
-.chip.active .chip-count { background: var(--accent); color: white; }
-
-.sidebar-footer { padding: 1.4rem; border-top: 1px solid var(--border); }
-
-.btn-primary {
-  width: 100%;
-  padding: 0.7rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: 0.3px;
-  transition: all var(--transition);
-  margin-bottom: 0.6rem;
-  box-shadow: 0 4px 14px var(--glow);
-}
-
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--glow); }
-.btn-primary:active { transform: translateY(0); }
-
-.btn-ghost {
-  width: 100%;
-  padding: 0.65rem;
-  background: transparent;
-  color: var(--text2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.btn-ghost:hover { background: var(--surface); color: var(--text); border-color: var(--text3); }
-
-/* ═══════════════════════════════════════
-   MAIN
-═══════════════════════════════════════ */
-.main {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  padding: 1rem 2rem;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  backdrop-filter: blur(12px);
-  transition: background var(--transition);
-}
-
-.topbar-left h1 {
-  font-family: 'Syne', sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1.1;
-  background: linear-gradient(135deg, var(--text) 40%, var(--accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.topbar-left p { font-size: 0.82rem; color: var(--text3); margin-top: 1px; }
-.topbar-right { display: flex; align-items: center; gap: 0.8rem; }
-
-.theme-toggle {
-  position: relative;
-  width: 54px;
-  height: 28px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  cursor: pointer;
-  transition: all var(--transition);
-  display: flex;
-  align-items: center;
-  padding: 0 4px;
-}
-
-.theme-toggle::after {
-  content: '';
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--scheme));
-  transition: transform var(--transition);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-[data-theme="light"] .theme-toggle::after { transform: translateX(26px); }
-
-.theme-icon {
-  position: absolute;
-  font-size: 0.7rem;
-  transition: opacity var(--transition);
-  pointer-events: none;
-}
-
-.moon-icon { left: 7px; opacity: 1; }
-.sun-icon  { right: 7px; opacity: 0; }
-
-[data-theme="light"] .moon-icon { opacity: 0; }
-[data-theme="light"] .sun-icon  { opacity: 1; }
-
-/* ═══════════════════════════════════════
-   STATS
-═══════════════════════════════════════ */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  padding: 1.5rem 2rem;
-}
-
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.2rem 1.4rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: all var(--transition);
-  animation: fadeUp 0.5s ease both;
-}
-
-.stat-card:hover { border-color: var(--accent); box-shadow: var(--shadow); transform: translateY(-2px); }
-
-.stat-icon {
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.stat-icon.total  { background: rgba(61,139,255,0.12); }
-.stat-icon.job    { background: var(--job-bg); }
-.stat-icon.scheme { background: var(--scheme-bg); }
-.stat-icon.schol  { background: var(--schol-bg); }
-
-.stat-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.stat-lbl { font-size: 0.75rem; color: var(--text3); margin-top: 2px; }
-
-.content { padding: 0 2rem 2rem; flex: 1; }
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.4rem;
-}
-
-.result-text { font-size: 0.85rem; color: var(--text2); }
-.result-text span { font-weight: 600; color: var(--text); }
-
-.view-toggle { display: flex; gap: 0.4rem; }
-
-.view-btn {
-  width: 32px; height: 32px;
-  border: 1px solid var(--border);
-  background: transparent;
-  border-radius: 7px;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  color: var(--text3);
-  transition: all var(--transition);
-  font-size: 0.9rem;
-}
-
-.view-btn.active { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
-.view-btn:hover:not(.active) { background: var(--surface); color: var(--text); }
-
-/* ═══════════════════════════════════════
-   CARDS — GLOW HOVER EFFECT
-═══════════════════════════════════════ */
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.2rem;
-}
-
-.cards.list-view { grid-template-columns: 1fr; }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  cursor: pointer;
-  transition: all var(--transition);
-  position: relative;
-  overflow: hidden;
-  animation: fadeUp 0.4s ease both;
-}
-
-/* Glowing pseudo-element background on hover */
-.card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  opacity: 0;
-  transition: opacity var(--transition);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.card[data-type="job"]::after        { background: radial-gradient(ellipse at 50% 0%, var(--job-glow) 0%, transparent 70%); }
-.card[data-type="scheme"]::after     { background: radial-gradient(ellipse at 50% 0%, var(--scheme-glow) 0%, transparent 70%); }
-.card[data-type="scholarship"]::after{ background: radial-gradient(ellipse at 50% 0%, var(--schol-glow) 0%, transparent 70%); }
-
-/* Colored top border strip */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  border-radius: 16px 16px 0 0;
-  opacity: 0;
-  transition: opacity var(--transition);
-  z-index: 1;
-}
-
-.card[data-type="job"]::before        { background: linear-gradient(90deg, transparent, var(--job), transparent); }
-.card[data-type="scheme"]::before     { background: linear-gradient(90deg, transparent, var(--scheme), transparent); }
-.card[data-type="scholarship"]::before{ background: linear-gradient(90deg, transparent, var(--schol), transparent); }
-
-.card:hover {
-  transform: translateY(-5px);
-  border-color: transparent;
-}
-
-.card[data-type="job"]:hover        { box-shadow: 0 0 0 1px var(--job),   0 12px 40px var(--job-glow),   0 4px 16px rgba(0,0,0,0.4); }
-.card[data-type="scheme"]:hover     { box-shadow: 0 0 0 1px var(--scheme), 0 12px 40px var(--scheme-glow), 0 4px 16px rgba(0,0,0,0.4); }
-.card[data-type="scholarship"]:hover{ box-shadow: 0 0 0 1px var(--schol),  0 12px 40px var(--schol-glow),  0 4px 16px rgba(0,0,0,0.4); }
-
-.card:hover::before { opacity: 1; }
-.card:hover::after  { opacity: 1; }
-
-/* Card content above pseudo-elements */
-.card > * { position: relative; z-index: 2; }
-
-.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
-
-.badge {
-  padding: 4px 10px;
-  border-radius: 99px;
-  font-size: 0.67rem;
-  font-weight: 600;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  flex-shrink: 0;
-  transition: all var(--transition);
-}
-
-.badge.job        { background: var(--job-bg);    color: var(--job); }
-.badge.scheme     { background: var(--scheme-bg);  color: var(--scheme); }
-.badge.scholarship{ background: var(--schol-bg);   color: var(--schol); }
-
-.card:hover .badge.job        { background: var(--job);    color: #fff; }
-.card:hover .badge.scheme     { background: var(--scheme);  color: #fff; }
-.card:hover .badge.scholarship{ background: var(--schol);   color: #fff; }
-
-.card-num { font-size: 0.72rem; color: var(--text3); font-family: 'Syne', sans-serif; }
-
-.card h3 {
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.card p { font-size: 0.83rem; color: var(--text2); line-height: 1.6; }
-
-.card-meta { display: flex; gap: 1rem; flex-wrap: wrap; }
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--text3);
-}
-
-.meta-icon { font-size: 0.7rem; }
-
-.card-btn {
-  margin-top: auto;
-  padding: 0.6rem 1rem;
-  background: var(--bg2);
-  color: var(--text2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.83rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-}
-
-.card[data-type="job"]:hover        .card-btn { background: var(--job);    color: #fff; border-color: var(--job); }
-.card[data-type="scheme"]:hover     .card-btn { background: var(--scheme);  color: #fff; border-color: var(--scheme); }
-.card[data-type="scholarship"]:hover .card-btn { background: var(--schol);  color: #fff; border-color: var(--schol); }
-
-/* LIST VIEW */
-.cards.list-view .card { flex-direction: row; align-items: center; gap: 1.5rem; padding: 1.1rem 1.4rem; }
-.cards.list-view .card-body { flex: 1; }
-.cards.list-view .card h3 { font-size: 0.95rem; }
-.cards.list-view .card p { display: none; }
-.cards.list-view .card-btn { width: auto; margin-top: 0; flex-shrink: 0; white-space: nowrap; }
-.cards.list-view .card-meta { display: none; }
-
-/* EMPTY */
-.empty { grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: var(--text3); }
-.empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-.empty h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--text2); }
-.empty p { font-size: 0.85rem; margin-top: 0.4rem; }
-
-/* ═══════════════════════════════════════
-   MODAL
-═══════════════════════════════════════ */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(12px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  z-index: 1000;
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition);
-}
-
-.modal-overlay.open { opacity: 1; visibility: visible; }
-
-.modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  width: 100%;
-  max-width: 560px;
-  border-radius: 20px;
-  overflow: hidden;
-  transform: scale(0.92) translateY(20px);
-  transition: transform var(--transition);
-  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-overlay.open .modal { transform: scale(1) translateY(0); }
-
-.modal-hero {
-  padding: 2rem 2rem 1.5rem;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 1.2rem; right: 1.2rem;
-  width: 32px; height: 32px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  color: var(--text2);
-  font-size: 1rem;
-  transition: all var(--transition);
-}
-
-.modal-close:hover { background: var(--bg3); color: var(--text); transform: rotate(90deg); }
-
-.modal-badge { margin-bottom: 1rem; }
-
-.modal-title {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1.3;
-  margin-bottom: 0.5rem;
-}
-
-.modal-desc { font-size: 0.9rem; color: var(--text2); line-height: 1.7; }
-
-.modal-body { padding: 1.5rem 2rem; }
-
-.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-
-.modal-field {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
-}
-
-.modal-field-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 0.35rem;
-}
-
-.modal-field-value { font-size: 0.88rem; font-weight: 500; color: var(--text); line-height: 1.5; }
-
-.modal-actions { display: flex; gap: 0.8rem; }
-
-.btn-visit {
-  flex: 1;
-  padding: 0.8rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  box-shadow: 0 4px 14px var(--glow);
-}
-
-.btn-visit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--glow); }
-
-.btn-outline {
-  padding: 0.8rem 1.2rem;
-  background: transparent;
-  color: var(--text2);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all var(--transition);
-}
-
-.btn-outline:hover { background: var(--surface2); color: var(--text); }
-
-/* ═══════════════════════════════════════
-   TOAST
-═══════════════════════════════════════ */
-.toast {
-  position: fixed;
-  bottom: 6rem;
-  right: 2rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 0.9rem 1.4rem;
-  font-size: 0.85rem;
-  color: var(--text);
-  box-shadow: var(--shadow);
-  z-index: 2000;
-  transform: translateY(20px);
-  opacity: 0;
-  transition: all var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  pointer-events: none;
-}
-
-.toast.show { transform: translateY(0); opacity: 1; }
-
-/* ═══════════════════════════════════════
-   AI CHATBOX
-═══════════════════════════════════════ */
-
-/* Floating button */
-.chat-fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--scheme));
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  box-shadow: 0 8px 28px var(--glow-strong);
-  z-index: 900;
-  transition: all var(--transition);
-  animation: pulseRing 2.5s ease-in-out infinite;
-}
-
-.chat-fab:hover { transform: scale(1.08); box-shadow: 0 12px 36px var(--glow-strong); }
-.chat-fab:active { transform: scale(0.96); }
-
-@keyframes pulseRing {
-  0%, 100% { box-shadow: 0 8px 28px var(--glow-strong), 0 0 0 0 var(--glow); }
-  50%       { box-shadow: 0 8px 28px var(--glow-strong), 0 0 0 10px transparent; }
-}
-
-.chat-fab-label {
-  position: absolute;
-  right: 64px;
-  white-space: nowrap;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 0.8rem;
-  font-family: 'DM Sans', sans-serif;
-  padding: 0.4rem 0.8rem;
-  border-radius: 8px;
-  opacity: 0;
-  transform: translateX(8px);
-  transition: all var(--transition);
-  pointer-events: none;
-}
-
-.chat-fab:hover .chat-fab-label { opacity: 1; transform: translateX(0); }
-
-/* Chat window */
-.chatbox {
-  position: fixed;
-  bottom: 6.5rem;
-  right: 2rem;
-  width: 360px;
-  max-height: 520px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 890;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.45);
-  transform: scale(0.9) translateY(20px);
-  transform-origin: bottom right;
-  opacity: 0;
-  visibility: hidden;
-  transition: all var(--transition);
-}
-
-.chatbox.open {
-  transform: scale(1) translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Chat header */
-.chat-header {
-  padding: 1rem 1.2rem;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  flex-shrink: 0;
-}
-
-.chat-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), var(--scheme));
-  display: grid;
-  place-items: center;
-  font-size: 1rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 10px var(--glow);
-}
-
-.chat-header-info { flex: 1; }
-
-.chat-header-name {
-  font-family: 'Syne', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.chat-header-status {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
-  color: var(--text3);
-  margin-top: 1px;
-}
-
-.status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #22d3b8;
-  animation: blink 1.5s ease-in-out infinite;
-}
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-.chat-minimize {
-  background: none;
-  border: none;
-  color: var(--text3);
-  cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0.3rem;
-  border-radius: 6px;
-  transition: all var(--transition);
-  line-height: 1;
-}
-
-.chat-minimize:hover { background: var(--surface); color: var(--text); }
-
-/* Messages area */
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  min-height: 0;
-}
-
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 99px; }
-
-/* Message bubble */
-.msg {
-  display: flex;
-  gap: 0.6rem;
-  animation: msgIn 0.25s ease both;
-}
-
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.msg.user { flex-direction: row-reverse; }
-
-.msg-avatar {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 0.75rem;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.msg.bot .msg-avatar  { background: linear-gradient(135deg, var(--accent), var(--scheme)); }
-.msg.user .msg-avatar { background: var(--surface2); }
-
-.msg-bubble {
-  max-width: 78%;
-  padding: 0.65rem 0.9rem;
-  border-radius: 14px;
-  font-size: 0.83rem;
-  line-height: 1.55;
-}
-
-.msg.bot .msg-bubble {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-bottom-left-radius: 4px;
-  color: var(--text);
-}
-
-.msg.user .msg-bubble {
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  border-bottom-right-radius: 4px;
-}
-
-/* Typing indicator */
-.typing-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0.65rem 0.9rem;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  border-bottom-left-radius: 4px;
-  width: fit-content;
-}
-
-.typing-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--text3);
-  animation: typingBounce 1.2s ease-in-out infinite;
-}
-
-.typing-dot:nth-child(2) { animation-delay: 0.2s; }
-.typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typingBounce {
-  0%,60%,100%{ transform: translateY(0); opacity: 0.4; }
-  30%        { transform: translateY(-5px); opacity: 1; }
-}
-
-/* Quick suggestions */
-.chat-suggestions {
-  padding: 0.6rem 1rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  border-top: 1px solid var(--border);
-  background: var(--bg2);
-  flex-shrink: 0;
-}
-
-.suggestion-chip {
-  padding: 4px 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text2);
-  border-radius: 99px;
-  font-size: 0.72rem;
-  cursor: pointer;
-  transition: all var(--transition);
-  font-family: 'DM Sans', sans-serif;
-  white-space: nowrap;
-}
-
-.suggestion-chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
-
-/* Input area */
-.chat-input-row {
-  padding: 0.8rem 1rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  gap: 0.6rem;
-  align-items: flex-end;
-  background: var(--bg2);
-  flex-shrink: 0;
-}
-
-.chat-input {
-  flex: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.6rem 0.9rem;
-  color: var(--text);
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  resize: none;
-  outline: none;
-  transition: all var(--transition);
-  min-height: 38px;
-  max-height: 80px;
-  line-height: 1.5;
-}
-
-.chat-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
-.chat-input::placeholder { color: var(--text3); }
-
-.chat-send {
-  width: 38px; height: 38px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color: white;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 1rem;
-  transition: all var(--transition);
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px var(--glow);
-}
-
-.chat-send:hover { transform: scale(1.05); box-shadow: 0 6px 18px var(--glow); }
-.chat-send:active { transform: scale(0.96); }
-.chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-/* ═══════════════════════════════════════
-   MOBILE
-═══════════════════════════════════════ */
-.menu-toggle {
-  display: none;
-  width: 36px; height: 36px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 8px;
-  cursor: pointer;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
-
-.menu-bar { width: 16px; height: 2px; background: var(--text2); border-radius: 2px; transition: all var(--transition); }
-
-.sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 199; backdrop-filter: blur(4px); }
-.sidebar-backdrop.open { display: block; }
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.05s; }
-.stat-card:nth-child(2) { animation-delay: 0.10s; }
-.stat-card:nth-child(3) { animation-delay: 0.15s; }
-.stat-card:nth-child(4) { animation-delay: 0.20s; }
-
-@media (max-width: 960px) {
-  .stats-row { grid-template-columns: repeat(2,1fr); }
-  .menu-toggle { display: flex; }
-  .sidebar { position: fixed; left: 0; top: 0; height: 100vh; transform: translateX(-100%); transition: transform var(--transition); z-index: 200; box-shadow: 4px 0 40px rgba(0,0,0,0.4); }
-  .sidebar.open { transform: translateX(0); }
-}
-
-@media (max-width: 600px) {
-  .stats-row { grid-template-columns: 1fr 1fr; gap: 0.8rem; padding: 1rem; }
-  .topbar { padding: 0.9rem 1rem; }
-  .content { padding: 0 1rem 1.5rem; }
-  .modal-grid { grid-template-columns: 1fr; }
-  .cards { grid-template-columns: 1fr; }
-  .chatbox { width: calc(100vw - 2rem); right: 1rem; bottom: 5.5rem; }
-  .chat-fab { right: 1rem; bottom: 1rem; }
-  .toast { right: 1rem; bottom: 5.5rem; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Sphere · professional splash</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0f24;  /* deep navy backup */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* refined ink‑blot splash – smoother, softer edges */
+        .splash {
+            position: absolute;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle at center, #1f2b5c 0%, #121a40 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(0,20,80,0.6);
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            animation: splashBloom 1.4s cubic-bezier(0.45, 0.9, 0.3, 1) forwards;
+            animation-delay: 0.6s;
+            z-index: 1;
+        }
+
+        @keyframes splashBloom {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            70% {
+                opacity: 1;
+            }
+            100% {
+                width: 2300px;
+                height: 2300px;
+                opacity: 1;
+                background: radial-gradient(circle at center, #26378c 0%, #0f1a44 100%);
+            }
+        }
+
+        /* main card – floats above splash */
+        .content {
+            position: relative;
+            z-index: 20;
+            text-align: center;
+            opacity: 0;
+            animation: fadeRise 1s ease-out forwards;
+            animation-delay: 2.1s;
+            transform: translateY(12px);
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.4));
+        }
+
+        @keyframes fadeRise {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ------- logo button (modern, interactive) ------- */
+        .logo-button {
+            display: inline-block;
+            background: white;
+            width: 200px;
+            height: 200px;
+            border-radius: 40% 60% 30% 70% / 50% 40% 60% 50%;
+            background: linear-gradient(145deg, #ffffff, #f2f5ff);
+            box-shadow: 
+                0 30px 40px -10px rgba(0, 8, 39, 0.5),
+                0 0 0 2px rgba(255,255,255,0.3) inset,
+                0 -2px 5px rgba(0,0,0,0.1) inset;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px auto;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            cursor: pointer;
+            position: relative;
+            border: none;
+            padding: 0;
+            outline: none;
+            animation: floatGlow 3s infinite alternate ease-in-out;
+        }
+
+        .logo-button:hover {
+            transform: scale(1.04) rotate(1deg);
+            background: linear-gradient(145deg, #ffffff, #eaefff);
+            box-shadow: 
+                0 40px 50px -8px #0b1a5a,
+                0 0 0 4px rgba(255,255,255,0.5) inset;
+        }
+
+        .logo-button:active {
+            transform: scale(0.98);
+            transition: 0.1s;
+            box-shadow: 0 15px 25px -5px #020a2b;
+        }
+
+        /* subtle floating motion */
+        @keyframes floatGlow {
+            0% {
+                border-radius: 40% 60% 35% 65% / 45% 40% 60% 55%;
+                box-shadow: 0 25px 40px -10px #112052;
+            }
+            100% {
+                border-radius: 50% 40% 60% 40% / 45% 55% 45% 55%;
+                box-shadow: 0 35px 55px -8px #14287a;
+            }
+        }
+
+        /* inner image: fit with soft white glow */
+        .logo-button img {
+            width: 140px;
+            height: auto;
+            display: block;
+            border-radius: 30% 40% 30% 40%;
+            filter: drop-shadow(0 8px 12px rgba(0,20,50,0.3));
+            transition: filter 0.2s;
+        }
+
+        .logo-button:hover img {
+            filter: drop-shadow(0 10px 16px #29419b);
+        }
+
+        /* company name refined */
+        .company-name {
+            font-family: 'Merriweather', serif;
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 2px 4px #00000040;
+            margin-top: 10px;
+            line-height: 1.2;
+        }
+
+       
+
+        /* tagline elegance */
+        .motto span {
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(120deg, #ffd966, #ffe69b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* extra micro detail: subtle rotating ring behind logo (optional) */
+        .ring-back {
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            opacity: 0.5;
+            animation: spinSlow 20s infinite linear;
+        }
+
+        @keyframes spinSlow {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* fine details for larger screens */
+        @media (min-width: 800px) {
+            .logo-button {
+                width: 230px;
+                height: 230px;
+            }
+            .logo-button img {
+                width: 260px;
+            }
+        }
+
+        /* accessibility & button reset */
+        .logo-button:focus-visible {
+            outline: 3px solid white;
+            outline-offset: 6px;
+        }
+
+        /* optional progress bar? no, minimal – but keep clean */
+        .bottom-note {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 13px;
+            letter-spacing: 1px;
+            z-index: 30;
+            opacity: 0;
+            animation: fadeRise 1s 3s forwards;
+            font-weight: 300;
+            backdrop-filter: blur(3px);
+        }
+    </style>
 </head>
 <body>
 
-<!-- SIDEBAR BACKDROP -->
-<div class="sidebar-backdrop" id="backdrop" onclick="closeSidebar()"></div>
+    <!-- expanding background splash (more dynamic than original) -->
+    <div class="splash"></div>
 
-<!-- SIDEBAR -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">
-      <div class="logo-icon">🎓</div>
-      <span class="logo-text">Growth Sphere</span>
-    </div>
-    <div class="sidebar-title">Filters</div>
-    <div class="filter-group">
-      <label class="filter-label">Search</label>
-      <input class="filter-input" id="searchInput" type="text" placeholder="Search opportunities…" oninput="applyFilters()">
-    </div>
-  </div>
+    <!-- subtle spinning ring behind logo (adds depth) -->
+    <div class="ring-back"></div>
 
-  <div class="sidebar-body">
-    <div class="filter-group">
-      <label class="filter-label">Category</label>
-      <div class="chip-group">
-        <button class="chip active" data-cat="all" onclick="selectCat(this)">
-          <span class="chip-dot" style="background:var(--accent)"></span>All Categories
-          <span class="chip-count" id="count-all">20</span>
+    <!-- main content: logo as button, name, motto -->
+    <div class="content">
+        <!-- interactive logo button (professional ui) -->
+        <button class="logo-button" aria-label="Growth Sphere home" onclick="window.location.href='#'; return false;">
+            <img src="output-onlinepngtools.png"
+                 alt="Growth Sphere emblem: rising graph inside sphere">
         </button>
-        <button class="chip" data-cat="job" onclick="selectCat(this)">
-          <span class="chip-dot" style="background:var(--job)"></span>Jobs
-          <span class="chip-count" id="count-job">0</span>
-        </button>
-        <button class="chip" data-cat="scheme" onclick="selectCat(this)">
-          <span class="chip-dot" style="background:var(--scheme)"></span>Schemes
-          <span class="chip-count" id="count-scheme">0</span>
-        </button>
-        <button class="chip" data-cat="scholarship" onclick="selectCat(this)">
-          <span class="chip-dot" style="background:var(--schol)"></span>Scholarships
-          <span class="chip-count" id="count-scholarship">0</span>
-        </button>
-      </div>
+
+        <div class="company-name">GROWTH SPHERE</div>
+        <div class="motto"><span>learning to earning</span> – for everyone</div>
     </div>
 
-    <div class="filter-group">
-      <label class="filter-label">Sort by</label>
-      <select class="filter-select" id="sortSelect" onchange="applyFilters()">
-        <option value="default">Default order</option>
-        <option value="az">A → Z</option>
-        <option value="za">Z → A</option>
-        <option value="type">By type</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="sidebar-footer">
-    <button class="btn-primary" onclick="applyFilters()">🔍 Apply Filters</button>
-    <button class="btn-ghost" onclick="resetAll()">↺ Reset All</button>
-  </div>
-</aside>
-
-<!-- MAIN -->
-<div class="main">
-  <header class="topbar">
-    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
-      <span class="menu-bar"></span><span class="menu-bar"></span><span class="menu-bar"></span>
-    </button>
-    <div class="topbar-left">
-      <h1>Discover
-Opportunities</h1>
-      <p>Discover government jobs, scholarships &amp; schemes</p>
-    </div>
-    <div class="topbar-right">
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-        <span class="theme-icon moon-icon">🌙</span>
-        <span class="theme-icon sun-icon">☀️</span>
-      </button>
-    </div>
-  </header>
-
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="stat-icon total">📊</div>
-      <div class="stat-info"><div class="stat-num" id="s-total">20</div><div class="stat-lbl">Total Listed</div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon job">💼</div>
-      <div class="stat-info"><div class="stat-num" id="s-job">0</div><div class="stat-lbl">Jobs</div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon scheme">🏛️</div>
-      <div class="stat-info"><div class="stat-num" id="s-scheme">0</div><div class="stat-lbl">Schemes</div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon schol">🏅</div>
-      <div class="stat-info"><div class="stat-num" id="s-schol">0</div><div class="stat-lbl">Scholarships</div></div>
-    </div>
-  </div>
-
-  <div class="content">
-    <div class="toolbar">
-      <p class="result-text">Showing <span id="resultCount">20</span> results</p>
-      <div class="view-toggle">
-        <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid view">⊞</button>
-        <button class="view-btn" id="listBtn" onclick="setView('list')" title="List view">☰</button>
-      </div>
-    </div>
-    <div class="cards" id="cardsContainer"></div>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-hero">
-      <button class="modal-close" onclick="closeModal()">✕</button>
-      <div class="modal-badge"><span class="badge" id="mBadge"></span></div>
-      <h2 class="modal-title" id="mTitle"></h2>
-      <p class="modal-desc" id="mDesc"></p>
-    </div>
-    <div class="modal-body">
-      <div class="modal-grid">
-        <div class="modal-field">
-          <div class="modal-field-label">✅ Eligibility</div>
-          <div class="modal-field-value" id="mElig"></div>
-        </div>
-        <div class="modal-field">
-          <div class="modal-field-label">📅 Deadline</div>
-          <div class="modal-field-value" id="mDeadline"></div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <a id="mLink" href="#" target="_blank" class="btn-visit">Visit Official Site ↗</a>
-        <button class="btn-outline" onclick="closeModal()">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast">
-  <span id="toastIcon">✅</span>
-  <span id="toastMsg">Filters applied</span>
-</div>
-
-<!-- AI CHATBOX -->
-<button class="chat-fab" onclick="toggleChat()" id="chatFab" aria-label="Open AI assistant">
-  <span id="chatFabIcon">🤖</span>
-  <span class="chat-fab-label">Ask GradAI</span>
-</button>
-
-<div class="chatbox" id="chatbox">
-  <div class="chat-header">
-    <div class="chat-avatar">🤖</div>
-    <div class="chat-header-info">
-      <div class="chat-header-name">GradAI Assistant</div>
-      <div class="chat-header-status">
-        <span class="status-dot"></span> Online — Ask me anything
-      </div>
-    </div>
-    <button class="chat-minimize" onclick="toggleChat()" aria-label="Minimize">−</button>
-  </div>
-
-  <div class="chat-messages" id="chatMessages"></div>
-
-  <div class="chat-suggestions" id="chatSuggestions">
-    <button class="suggestion-chip" onclick="sendSuggestion(this)">Show all jobs</button>
-    <button class="suggestion-chip" onclick="sendSuggestion(this)">Find scholarships</button>
-    <button class="suggestion-chip" onclick="sendSuggestion(this)">What schemes are available?</button>
-    <button class="suggestion-chip" onclick="sendSuggestion(this)">UPSC details</button>
-  </div>
-
-  <div class="chat-input-row">
-    <textarea class="chat-input" id="chatInput" placeholder="Ask about opportunities…" rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
-    <button class="chat-send" id="chatSendBtn" onclick="sendMessage()" aria-label="Send">➤</button>
-  </div>
-</div>
-
-<script>
-/* ════ DATA ════ */
-const data = [
-  {id:1,  type:"scheme",      title:"PM Internship Scheme",        description:"Internship opportunities for students across India.",               eligibility:"UG/PG Students",           deadline:"31-03-2026",         link:"https://www.pminternship.mca.gov.in/"},
-  {id:2,  type:"scholarship", title:"National Scholarship Portal",  description:"Central portal for all Government of India scholarships.",          eligibility:"Eligible Students",        deadline:"As per scheme",      link:"https://scholarships.gov.in/"},
-  {id:3,  type:"job",         title:"UPSC Civil Services",          description:"IAS, IPS and central government services examination.",             eligibility:"Graduate | 21–32 years",   deadline:"Official notif.",    link:"https://www.upsc.gov.in/"},
-  {id:4,  type:"job",         title:"SSC Recruitment",              description:"Staff Selection Commission central government jobs.",              eligibility:"10+2 / Graduate",          deadline:"As per notification",link:"https://ssc.nic.in/"},
-  {id:5,  type:"scheme",      title:"AICTE Internship Portal",      description:"AICTE approved internships for technical students.",               eligibility:"Engineering/Diploma",      deadline:"Rolling",            link:"https://internship.aicte-india.org/"},
-  {id:6,  type:"job",         title:"Indian Railways Recruitment",  description:"Railway Recruitment Board jobs for all levels.",                   eligibility:"10th/12th/Graduate",       deadline:"Notification based", link:"https://indianrailways.gov.in/"},
-  {id:7,  type:"job",         title:"DRDO Recruitment",             description:"Defence Research and Development Organisation jobs.",              eligibility:"Engineering/Science Grad", deadline:"Official ad",        link:"https://www.drdo.gov.in/"},
-  {id:8,  type:"job",         title:"ISRO Careers",                 description:"Indian Space Research Organisation openings.",                    eligibility:"Engineering/Science Grad", deadline:"As per notification",link:"https://www.isro.gov.in/Careers.html"},
-  {id:9,  type:"scholarship", title:"INSPIRE Scholarship",          description:"DST scholarship for science students in top programmes.",          eligibility:"Science Students",         deadline:"Official notice",     link:"https://online-inspire.gov.in/"},
-  {id:10, type:"scheme",      title:"Skill India Portal",           description:"Skill development and certification programmes.",                  eligibility:"Indian Citizens",          deadline:"Open",               link:"https://www.skillindia.gov.in/"},
-  {id:11, type:"scheme",      title:"Startup India",                description:"Government support and funding for early-stage startups.",         eligibility:"Entrepreneurs",            deadline:"Open",               link:"https://www.startupindia.gov.in/"},
-  {id:12, type:"job",         title:"IBPS Banking Jobs",            description:"Bank recruitment board common written examinations.",              eligibility:"Graduate",                 deadline:"As per notification",link:"https://www.ibps.in/"},
-  {id:13, type:"scholarship", title:"AICTE Pragati Scholarship",    description:"Scholarship exclusively for girl students in technical courses.",  eligibility:"Female Technical Students",deadline:"Portal notice",      link:"https://www.aicte-india.org/"},
-  {id:14, type:"scheme",      title:"Digital India",                description:"National digital transformation and infrastructure initiative.",   eligibility:"Open to citizens",         deadline:"Ongoing",            link:"https://www.digitalindia.gov.in/"},
-  {id:15, type:"job",         title:"Indian Army Recruitment",      description:"Join the Indian Army in various officer and soldier roles.",       eligibility:"10+2 / Graduate",          deadline:"As per notification",link:"https://joinindianarmy.nic.in/"},
-  {id:16, type:"job",         title:"Indian Navy Recruitment",      description:"Join the Indian Navy in technical and non-technical roles.",       eligibility:"10+2 / Graduate",          deadline:"Notification based", link:"https://www.joinindiannavy.gov.in/"},
-  {id:17, type:"job",         title:"Indian Air Force Recruitment", description:"Pursue a career in the Indian Air Force.",                         eligibility:"10+2 / Graduate",          deadline:"As per notice",      link:"https://indianairforce.nic.in/"},
-  {id:18, type:"scheme",      title:"PM Kaushal Vikas Yojana",      description:"Free skill training and industry certification scheme.",           eligibility:"Indian Citizens",          deadline:"Ongoing",            link:"https://www.pmkvyofficial.org/"},
-  {id:19, type:"scholarship", title:"Post Matric Scholarship",      description:"Scholarship for SC/ST/OBC students post 10th standard.",          eligibility:"Eligible category students",deadline:"State-wise",        link:"https://scholarships.gov.in/"},
-  {id:20, type:"scheme",      title:"National Portal of India",     description:"Official Government of India information gateway.",               eligibility:"Open",                     deadline:"Always available",   link:"https://www.india.gov.in/"},
-];
-
-/* ════ STATE ════ */
-let currentCat  = 'all';
-let currentView = 'grid';
-let filtered    = [...data];
-let chatOpen    = false;
-let botTyping   = false;
-
-/* ════ INIT ════ */
-window.addEventListener('DOMContentLoaded', () => {
-  updateCounts(data);
-  render(data);
-  updateStats(data);
-  animateNumbers();
-  // Welcome message
-  setTimeout(() => addBotMsg("👋 Hi! I'm GradAI. Ask me about jobs, scholarships, or government schemes listed here. I can help you filter and find what suits you!"), 600);
-});
-
-/* ════ FILTER / SEARCH ════ */
-function selectCat(el) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  currentCat = el.dataset.cat;
-  applyFilters();
-}
-
-function applyFilters() {
-  const q    = document.getElementById('searchInput').value.toLowerCase();
-  const sort = document.getElementById('sortSelect').value;
-
-  filtered = data.filter(d =>
-    (currentCat === 'all' || d.type === currentCat) &&
-    (d.title.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
-  );
-
-  if (sort === 'az') filtered.sort((a,b) => a.title.localeCompare(b.title));
-  if (sort === 'za') filtered.sort((a,b) => b.title.localeCompare(a.title));
-  if (sort === 'type') filtered.sort((a,b) => a.type.localeCompare(b.type));
-
-  render(filtered);
-  updateStats(filtered);
-  document.getElementById('resultCount').textContent = filtered.length;
-  showToast('🔍', `${filtered.length} result${filtered.length!==1?'s':''} found`);
-}
-
-function resetAll() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('sortSelect').value  = 'default';
-  currentCat = 'all';
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  document.querySelector('[data-cat="all"]').classList.add('active');
-  filtered = [...data];
-  render(filtered);
-  updateStats(data);
-  document.getElementById('resultCount').textContent = filtered.length;
-  showToast('↺', 'Filters reset');
-}
-
-/* ════ RENDER ════ */
-function render(items) {
-  const container = document.getElementById('cardsContainer');
-  container.innerHTML = '';
-
-  if (!items.length) {
-    container.innerHTML = `<div class="empty"><div class="empty-icon">🔭</div><h3>No results found</h3><p>Try adjusting your search or filters</p></div>`;
-    return;
-  }
-
-  items.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.dataset.type = item.type;
-    div.style.animationDelay = `${i * 0.04}s`;
-    div.innerHTML = `
-      <div class="card-header">
-        <span class="badge ${item.type}">${cap(item.type)}</span>
-        <span class="card-num">#${String(item.id).padStart(2,'0')}</span>
-      </div>
-      <h3>${item.title}</h3>
-      <p>${item.description}</p>
-      <div class="card-meta">
-        <span class="meta-item"><span class="meta-icon">👤</span>${item.eligibility}</span>
-        <span class="meta-item"><span class="meta-icon">📅</span>${item.deadline}</span>
-      </div>
-      <button class="card-btn" onclick="openModal(${item.id})">View Details →</button>`;
-    container.appendChild(div);
-  });
-
-  updateCounts(data);
-}
-
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-
-/* ════ STATS ════ */
-function updateStats(items) {
-  document.getElementById('s-total').textContent  = items.length;
-  document.getElementById('s-job').textContent    = items.filter(d=>d.type==='job').length;
-  document.getElementById('s-scheme').textContent = items.filter(d=>d.type==='scheme').length;
-  document.getElementById('s-schol').textContent  = items.filter(d=>d.type==='scholarship').length;
-}
-
-function updateCounts(items) {
-  document.getElementById('count-all').textContent         = items.length;
-  document.getElementById('count-job').textContent         = items.filter(d=>d.type==='job').length;
-  document.getElementById('count-scheme').textContent      = items.filter(d=>d.type==='scheme').length;
-  document.getElementById('count-scholarship').textContent = items.filter(d=>d.type==='scholarship').length;
-}
-
-/* ════ NUMBER ANIMATION ════ */
-function animateNumbers() {
-  document.querySelectorAll('.stat-num').forEach(el => {
-    const target = parseInt(el.textContent) || 0;
-    let cur = 0;
-    const step = Math.ceil(target / 20);
-    const t = setInterval(() => {
-      cur = Math.min(cur + step, target);
-      el.textContent = cur;
-      if (cur >= target) clearInterval(t);
-    }, 40);
-  });
-}
-
-/* ════ VIEW ════ */
-function setView(v) {
-  currentView = v;
-  const c = document.getElementById('cardsContainer');
-  if (v === 'list') {
-    c.classList.add('list-view');
-    document.getElementById('listBtn').classList.add('active');
-    document.getElementById('gridBtn').classList.remove('active');
-  } else {
-    c.classList.remove('list-view');
-    document.getElementById('gridBtn').classList.add('active');
-    document.getElementById('listBtn').classList.remove('active');
-  }
-}
-
-/* ════ MODAL ════ */
-function openModal(id) {
-  const item = data.find(d => d.id === id);
-  document.getElementById('mBadge').className   = `badge ${item.type}`;
-  document.getElementById('mBadge').textContent  = cap(item.type);
-  document.getElementById('mTitle').textContent  = item.title;
-  document.getElementById('mDesc').textContent   = item.description;
-  document.getElementById('mElig').textContent   = item.eligibility;
-  document.getElementById('mDeadline').textContent = item.deadline;
-  document.getElementById('mLink').href          = item.link;
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-
-/* ════ THEME ════ */
-function toggleTheme() {
-  const html = document.documentElement;
-  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
-  localStorage.setItem('gradpath-theme', html.dataset.theme);
-}
-
-const saved = localStorage.getItem('gradpath-theme');
-if (saved) document.documentElement.dataset.theme = saved;
-
-/* ════ TOAST ════ */
-let toastTimer;
-function showToast(icon, msg) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastIcon').textContent = icon;
-  document.getElementById('toastMsg').textContent  = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-}
-
-/* ════ MOBILE SIDEBAR ════ */
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('backdrop').classList.toggle('open');
-}
-
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('backdrop').classList.remove('open');
-}
-
-/* ════ KEYBOARD ════ */
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); if (chatOpen) toggleChat(); } });
-
-/* ════════════════════════════════════════
-   AI CHATBOX LOGIC
-════════════════════════════════════════ */
-function toggleChat() {
-  chatOpen = !chatOpen;
-  document.getElementById('chatbox').classList.toggle('open', chatOpen);
-  document.getElementById('chatFabIcon').textContent = chatOpen ? '✕' : '🤖';
-  if (chatOpen) setTimeout(() => document.getElementById('chatInput').focus(), 300);
-}
-
-function addBotMsg(text) {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg bot';
-  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">${text}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function addUserMsg(text) {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg user';
-  div.innerHTML = `<div class="msg-avatar">👤</div><div class="msg-bubble">${text}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function showTyping() {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg bot';
-  div.id = 'typingMsg';
-  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function hideTyping() {
-  const el = document.getElementById('typingMsg');
-  if (el) el.remove();
-}
-
-function sendSuggestion(el) {
-  const text = el.textContent;
-  document.getElementById('chatInput').value = text;
-  sendMessage();
-  // Hide suggestions after use
-  document.getElementById('chatSuggestions').style.display = 'none';
-}
-
-function handleChatKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 80) + 'px';
-}
-
-function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const text  = input.value.trim();
-  if (!text || botTyping) return;
-
-  addUserMsg(text);
-  input.value = '';
-  input.style.height = 'auto';
-  document.getElementById('chatSuggestions').style.display = 'none';
-
-  botTyping = true;
-  document.getElementById('chatSendBtn').disabled = true;
-  showTyping();
-
-  setTimeout(() => {
-    hideTyping();
-    const reply = generateReply(text.toLowerCase());
-    addBotMsg(reply);
-    botTyping = false;
-    document.getElementById('chatSendBtn').disabled = false;
-  }, 900 + Math.random() * 500);
-}
-
-/* Smart reply engine based on the dataset */
-function generateReply(q) {
-  // Match job queries
-  if (/\b(job|jobs|recruit|work|employ|career|vacancy)\b/.test(q)) {
-    const jobs = data.filter(d => d.type === 'job');
-    return `💼 There are <strong>${jobs.length} job opportunities</strong> listed:<br><br>` +
-      jobs.map(j => `• <strong>${j.title}</strong> — ${j.eligibility}`).join('<br>');
-  }
-
-  // Match scholarship queries
-  if (/\b(scholarship|scholarships|stipend|financial aid|money|fund)\b/.test(q)) {
-    const schols = data.filter(d => d.type === 'scholarship');
-    return `🏅 Found <strong>${schols.length} scholarships</strong>:<br><br>` +
-      schols.map(s => `• <strong>${s.title}</strong> — ${s.eligibility}`).join('<br>');
-  }
-
-  // Match scheme queries
-  if (/\b(scheme|schemes|program|programme|govt|government|initiative)\b/.test(q)) {
-    const schemes = data.filter(d => d.type === 'scheme');
-    return `🏛️ Found <strong>${schemes.length} government schemes</strong>:<br><br>` +
-      schemes.map(s => `• <strong>${s.title}</strong>`).join('<br>');
-  }
-
-  // Match specific opportunity by title keyword
-  const match = data.find(d =>
-    q.includes(d.title.toLowerCase()) ||
-    d.title.toLowerCase().split(' ').some(w => w.length > 3 && q.includes(w))
-  );
-
-  if (match) {
-    return `📋 <strong>${match.title}</strong><br><br>` +
-      `${match.description}<br><br>` +
-      `✅ <strong>Eligibility:</strong> ${match.eligibility}<br>` +
-      `📅 <strong>Deadline:</strong> ${match.deadline}<br>` +
-      `🔗 <a href="${match.link}" target="_blank" style="color:var(--accent)">Visit Official Site ↗</a>`;
-  }
-
-  // Deadline queries
-  if (/\b(deadline|when|date|last date|apply by)\b/.test(q)) {
-    const withDate = data.filter(d => /\d/.test(d.deadline));
-    if (withDate.length) {
-      return `📅 Opportunities with specific deadlines:<br><br>` +
-        withDate.map(d => `• <strong>${d.title}</strong> — ${d.deadline}`).join('<br>');
-    }
-    return "📅 Most deadlines depend on official notifications. I'd recommend visiting the official websites for exact dates.";
-  }
-
-  // Eligibility queries
-  if (/\b(eligible|eligibility|who can|qualify|qualification|graduate|10th|12th|ug|pg)\b/.test(q)) {
-    return `📋 Here's an eligibility quick-look:<br><br>` +
-      data.slice(0, 8).map(d => `• <strong>${d.title}</strong>: ${d.eligibility}`).join('<br>') +
-      `<br><br>Ask about a specific opportunity for more details!`;
-  }
-
-  // Count / how many
-  if (/\b(how many|count|total|number)\b/.test(q)) {
-    return `📊 Currently listed:<br>` +
-      `• <strong>${data.filter(d=>d.type==='job').length}</strong> Jobs<br>` +
-      `• <strong>${data.filter(d=>d.type==='scheme').length}</strong> Schemes<br>` +
-      `• <strong>${data.filter(d=>d.type==='scholarship').length}</strong> Scholarships<br>` +
-      `• <strong>${data.length}</strong> Total opportunities`;
-  }
-
-  // Engineering / science
-  if (/\b(engineer|engineering|science|technical|btech|mtech)\b/.test(q)) {
-    const tech = data.filter(d => /engineer|science|technical/i.test(d.eligibility));
-    return `🔬 Opportunities for Engineering/Science graduates:<br><br>` +
-      tech.map(d => `• <strong>${d.title}</strong> — ${d.type}`).join('<br>');
-  }
-
-  // Defence / military
-  if (/\b(army|navy|air force|defence|defense|military)\b/.test(q)) {
-    const def = data.filter(d => /army|navy|air force|drdo/i.test(d.title));
-    return `🎖️ Defence career opportunities:<br><br>` +
-      def.map(d => `• <strong>${d.title}</strong> — ${d.eligibility}`).join('<br>');
-  }
-
-  // Female / women
-  if (/\b(girl|female|woman|women|ladies)\b/.test(q)) {
-    const fem = data.filter(d => /female|girl|women/i.test(d.eligibility));
-    if (fem.length) return `👩‍🎓 Opportunities specifically for women:<br><br>` +
-      fem.map(d => `• <strong>${d.title}</strong> — ${d.description}`).join('<br>');
-  }
-
-  // Help / greetings
-  if (/\b(hi|hello|hey|help|what can you|start)\b/.test(q)) {
-    return `👋 Hello! I'm GradAI, your assistant for this dashboard.<br><br>I can help you:<br>• Find <strong>jobs, scholarships, or schemes</strong><br>• Search by <strong>eligibility</strong> (engineering, science, etc.)<br>• Look up <strong>specific opportunities</strong> like UPSC, ISRO, etc.<br>• Check <strong>deadlines</strong><br><br>Just ask away!`;
-  }
-
-  // Startup / entrepreneur
-  if (/\b(startup|entrepreneur|business|self.employ)\b/.test(q)) {
-    const s = data.find(d => d.title === 'Startup India');
-    return s ? `🚀 <strong>Startup India</strong> is perfect for you!<br><br>${s.description}<br><br>✅ Eligibility: ${s.eligibility}<br>🔗 <a href="${s.link}" target="_blank" style="color:var(--accent)">Visit Official Site ↗</a>` : "Try searching for Startup India on the dashboard!";
-  }
-
-  // Default fallback
-  return `🤔 I didn't quite catch that. Try asking me:<br>• "Show me all jobs"<br>• "What scholarships are available?"<br>• "Tell me about UPSC"<br>• "Which ones are for engineering students?"<br>• "What are the deadlines?"`;
-}
-</script>
+    <!-- tiny credit line / professionalism (optional) -->
+    <div class="bottom-note">✦  where potential meets trajectory  ✦</div>
+
+    <script>
+        (function() {
+            // makes the logo button behave like a professional link (but you can replace # with actual URL)
+            const btn = document.querySelector('.logo-button');
+            if(btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // subtle micro-interaction: quick pulse (modern ux)
+                    btn.style.transform = 'scale(0.97)';
+                    setTimeout(() => {
+                        btn.style.transform = '';
+                        // you could redirect, for demo we just blur
+                        window.location.href = "login.html";
+                    }, 120);
+                });
+            }
+        })();
+    </script>
+
+    <!-- fallback: if image doesn't load, button has background color – but svg embedded so safe -->
 </body>
 </html>
