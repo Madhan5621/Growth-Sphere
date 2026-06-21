@@ -1144,6 +1144,13 @@ body {
   <div class="sidebar-footer">
     <button class="btn-primary" onclick="applyFilters()">🔍 Apply Filters</button>
     <button class="btn-ghost" onclick="resetAll()">↺ Reset All</button>
+    <div id="userInfoBox" style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:0.6rem;">
+      <div style="overflow:hidden;">
+        <div id="userNameDisplay" style="font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Loading…</div>
+        <div id="userEmailDisplay" style="font-size:0.78rem; opacity:0.65; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+      </div>
+      <button class="btn-ghost" id="logoutBtn" title="Log out" style="flex-shrink:0; padding:0.5rem 0.8rem;">⏻</button>
+    </div>
   </div>
 </aside>
 
@@ -1296,14 +1303,54 @@ let filtered    = [...data];
 let chatOpen    = false;
 let botTyping   = false;
 
+/* ════ AUTH GUARD ════ */
+// Confirms a real, valid session before showing any protected content.
+// If there's no valid session, the user is bounced straight to login.html.
+async function checkAuthAndInit() {
+  try {
+    const res = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (!res.ok) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    const data = await res.json();
+    const nameEl = document.getElementById('userNameDisplay');
+    const emailEl = document.getElementById('userEmailDisplay');
+    if (nameEl) nameEl.textContent = data.user.fullName;
+    if (emailEl) emailEl.textContent = data.user.email;
+
+    initDashboard();
+  } catch (err) {
+    // Network/server error — fail safe by sending back to login rather than
+    // showing a dashboard we can't confirm is actually authorized.
+    window.location.href = 'login.html';
+  }
+}
+
 /* ════ INIT ════ */
-window.addEventListener('DOMContentLoaded', () => {
+function initDashboard() {
   updateCounts(data);
   render(data);
   updateStats(data);
   animateNumbers();
   // Welcome message
   setTimeout(() => addBotMsg("👋 Hi! I'm GradAI. Ask me about jobs, scholarships, or government schemes listed here. I can help you filter and find what suits you!"), 600);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } finally {
+      window.location.href = 'login.html';
+    }
+  });
+  checkAuthAndInit();
 });
 
 /* ════ FILTER / SEARCH ════ */

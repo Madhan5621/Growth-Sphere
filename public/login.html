@@ -387,22 +387,34 @@
         // ---- primary colour variable reused ----
         const primary = '#132043';
 
-        // --- global captcha variable ---
-        let currentCaptcha = "";
+        // Same-origin API base (works locally and on Vercel without changes).
+        const API_BASE = '/api/auth';
 
-        // --- helper to generate captcha (5 chars, no 1,0,I,O to avoid confusion) ---
-        function generateCaptchaCode() {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            let code = "";
-            for (let i = 0; i < 5; i++) {
-                code += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return code;
+        // Real email check, mirrors the server-side rule so users get instant
+        // feedback before the request even goes out.
+        const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+        function isValidEmail(email) {
+            if (!email) return false;
+            const trimmed = email.trim();
+            if (!EMAIL_REGEX.test(trimmed)) return false;
+            const [local] = trimmed.split('@');
+            if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false;
+            return true;
+        }
+        function isValidPassword(pw) {
+            return typeof pw === 'string' && pw.length >= 8 && /[a-zA-Z]/.test(pw) && /[0-9]/.test(pw);
         }
 
-        // --- render register form with current captcha ---
+        function setButtonLoading(btn, loading, idleLabel) {
+            if (!btn) return;
+            btn.disabled = loading;
+            btn.innerHTML = loading
+                ? `<span>Please wait…</span> <i class="fas fa-spinner fa-spin"></i>`
+                : idleLabel;
+        }
+
+        // --- render register form (real password field, real validation) ---
         function renderRegister() {
-            currentCaptcha = generateCaptchaCode();
             const container = document.getElementById('formContainer');
             if (!container) return;
 
@@ -410,7 +422,7 @@
                 <form id="registerForm">
                     <div class="input-field">
                         <label><i class="fas fa-user"></i> Full name</label>
-                        <input type="text" id="regName" placeholder="John Carter" autocomplete="off" required>
+                        <input type="text" id="regName" placeholder="John Carter" autocomplete="name" required>
                     </div>
 
                     <div class="input-field">
@@ -419,30 +431,23 @@
                     </div>
 
                     <div class="input-field">
-                        <label><i class="fas fa-envelope"></i> Email or contact</label>
-                        <input type="text" id="regEmail" placeholder="hello@domain.com  /  +1 234 567" required>
-                    </div>
-
-                    <!-- captcha row modern -->
-                    <div class="captcha-row">
-                        <div class="captcha-display" id="captchaDisplay">${currentCaptcha}</div>
-                        <button type="button" class="refresh-btn" id="refreshCaptchaBtn" title="refresh code"><i class="fas fa-sync-alt"></i></button>
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="regEmail" placeholder="hello@domain.com" autocomplete="email" required>
                     </div>
 
                     <div class="input-field">
-                        <label><i class="fas fa-lock"></i> Enter captcha</label>
-                        <input type="text" id="captchaInput" placeholder="type code here" autocomplete="off">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="regPassword" placeholder="At least 8 characters, with a number" autocomplete="new-password" required>
                     </div>
 
-                    <!-- human check card -->
-                    <div class="robot-check">
-                        <input type="checkbox" id="humanCheckbox">
-                        <label for="humanCheckbox"><i class="fas fa-robot"></i> I am not a robot</label>
+                    <div class="input-field">
+                        <label><i class="fas fa-lock"></i> Confirm password</label>
+                        <input type="password" id="regPasswordConfirm" placeholder="Re-enter your password" autocomplete="new-password" required>
                     </div>
 
                     <!-- dynamic error message -->
                     <div class="error-msg" id="registerError">
-                        <i class="fas fa-exclamation-circle"></i> <span id="errorText">Invalid form or captcha mismatch</span>
+                        <i class="fas fa-exclamation-circle"></i> <span id="errorText">Invalid form</span>
                     </div>
 
                     <button type="submit" class="btn-primary" id="registerSubmitBtn">
@@ -456,50 +461,57 @@
                 </div>
             `;
 
-            // attach captcha refresh inside register
-            const refreshBtn = document.getElementById('refreshCaptchaBtn');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', function() {
-                    currentCaptcha = generateCaptchaCode();
-                    const displayDiv = document.getElementById('captchaDisplay');
-                    if (displayDiv) displayDiv.innerText = currentCaptcha;
-                });
-            }
-
-            // register form submit logic
             const regForm = document.getElementById('registerForm');
             const errorDiv = document.getElementById('registerError');
             const errorSpan = document.getElementById('errorText');
+            const submitBtn = document.getElementById('registerSubmitBtn');
+            const idleLabel = `<span>Register</span> <i class="fas fa-arrow-right"></i>`;
 
-            regForm.addEventListener('submit', function(e) {
+            function showError(msg) {
+                errorSpan.innerText = msg;
+                errorDiv.classList.add('show');
+            }
+
+            regForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
+                errorDiv.classList.remove('show');
 
-                const name = document.getElementById('regName')?.value.trim() || "";
+                const fullName = document.getElementById('regName')?.value.trim() || "";
                 const dob = document.getElementById('regDob')?.value || "";
                 const email = document.getElementById('regEmail')?.value.trim() || "";
-                const captchaInput = document.getElementById('captchaInput')?.value.trim() || "";
-                const humanChecked = document.getElementById('humanCheckbox')?.checked || false;
+                const password = document.getElementById('regPassword')?.value || "";
+                const passwordConfirm = document.getElementById('regPasswordConfirm')?.value || "";
 
-                // validation
-                let errorMessage = "";
-                if (!name) errorMessage = "Full name is required.";
-                else if (!dob) errorMessage = "Date of birth is required.";
-                else if (!email) errorMessage = "Email or contact is required.";
-                else if (captchaInput !== currentCaptcha) errorMessage = "Captcha does not match.";
-                else if (!humanChecked) errorMessage = "Please confirm you are not a robot.";
+                // ---- client-side validation (server re-validates everything too) ----
+                if (fullName.length < 2) return showError("Please enter your full name.");
+                if (!dob) return showError("Date of birth is required.");
+                if (!isValidEmail(email)) return showError("Please enter a valid email address.");
+                if (!isValidPassword(password)) return showError("Password must be at least 8 characters and include a letter and a number.");
+                if (password !== passwordConfirm) return showError("Passwords do not match.");
 
-                if (errorMessage) {
-                    if (errorSpan) errorSpan.innerText = errorMessage;
-                    errorDiv.classList.add('show');
-                } else {
-                    errorDiv.classList.remove('show');
-                    // professional success simulation
-                    alert("✅ Registration successful! Redirecting to dashboard...");
-                    window.location.href = "home.html"; 
+                try {
+                    setButtonLoading(submitBtn, true);
+                    const res = await fetch(`${API_BASE}/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include', // sends/receives the auth cookie
+                        body: JSON.stringify({ fullName, email, password, dob }),
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        showError(data.error || "Registration failed. Please try again.");
+                        return;
+                    }
+
+                    window.location.href = "home.html";
+                } catch (err) {
+                    showError("Could not reach the server. Please check your connection and try again.");
+                } finally {
+                    setButtonLoading(submitBtn, false, idleLabel);
                 }
             });
 
-            // link to switch to login
             document.getElementById('goToLoginLink')?.addEventListener('click', function(e) {
                 e.preventDefault();
                 renderLogin();
@@ -512,25 +524,21 @@
             container.innerHTML = `
                 <form id="loginForm">
                     <div class="input-field">
-                        <label><i class="fas fa-id-card"></i> Email or contact</label>
-                        <input type="text" id="loginUser" placeholder="e.g. emily@growthsphere.com" required>
+                        <label><i class="fas fa-id-card"></i> Email</label>
+                        <input type="email" id="loginUser" placeholder="e.g. emily@growthsphere.com" autocomplete="email" required>
                     </div>
 
                     <div class="input-field">
                         <label><i class="fas fa-key"></i> Password</label>
-                        <input type="password" id="loginPass" placeholder="••••••••" required>
+                        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
                     </div>
 
-                    <!-- optional simple remember row (clean) -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0 20px;">
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <input type="checkbox" id="rememberMe" style="accent-color:#2dd4bf; width:16px; height:16px;">
-                            <label for="rememberMe" style="font-size:0.85rem; color:#b0c8ff;">keep me signed in</label>
-                        </div>
-                        <a href="#" style="color:#9b87f5; font-size:0.8rem; font-weight:600; text-decoration:none;">forgot?</a>
+                    <!-- dynamic error message -->
+                    <div class="error-msg" id="loginError">
+                        <i class="fas fa-exclamation-circle"></i> <span id="loginErrorText">Invalid credentials</span>
                     </div>
 
-                    <button type="submit" class="btn-primary">
+                    <button type="submit" class="btn-primary" id="loginSubmitBtn">
                         <span>Log in</span> <i class="fas fa-arrow-right"></i>
                     </button>
 
@@ -545,20 +553,50 @@
                 </div>
             `;
 
-            // login submit
-            document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+            const loginForm = document.getElementById('loginForm');
+            const errorDiv = document.getElementById('loginError');
+            const errorSpan = document.getElementById('loginErrorText');
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const idleLabel = `<span>Log in</span> <i class="fas fa-arrow-right"></i>`;
+
+            function showError(msg) {
+                errorSpan.innerText = msg;
+                errorDiv.classList.add('show');
+            }
+
+            loginForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                const user = document.getElementById('loginUser')?.value.trim() || "";
-                const pass = document.getElementById('loginPass')?.value || "";
-                if (!user || !pass) {
-                    alert("Please fill both fields.");
-                } else {
-                    alert("🔓 Login successful (demo). Redirecting to dashboard...");
+                errorDiv.classList.remove('show');
+
+                const email = document.getElementById('loginUser')?.value.trim() || "";
+                const password = document.getElementById('loginPass')?.value || "";
+
+                if (!isValidEmail(email)) return showError("Please enter a valid email address.");
+                if (!password) return showError("Please enter your password.");
+
+                try {
+                    setButtonLoading(submitBtn, true);
+                    const res = await fetch(`${API_BASE}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ email, password }),
+                    });
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        showError(data.error || "Login failed. Please try again.");
+                        return;
+                    }
+
                     window.location.href = "home.html";
+                } catch (err) {
+                    showError("Could not reach the server. Please check your connection and try again.");
+                } finally {
+                    setButtonLoading(submitBtn, false, idleLabel);
                 }
             });
 
-            // switch back to register
             document.getElementById('goToRegisterLink')?.addEventListener('click', function(e) {
                 e.preventDefault();
                 renderRegister();
@@ -570,7 +608,6 @@
             renderRegister();
         });
 
-        // expose for any legacy calls (if needed)
         window.showLogin = function() {
             renderLogin();
         };

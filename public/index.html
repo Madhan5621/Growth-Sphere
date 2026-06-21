@@ -247,6 +247,18 @@
     <div class="bottom-note">✦  where potential meets trajectory  ✦</div>
 
     <script>
+        // If the user already has a valid session, skip the splash->login hop
+        // and take them straight to the dashboard.
+        (function checkExistingSession() {
+            fetch('/api/auth/me', { method: 'GET', credentials: 'include' })
+                .then(res => {
+                    if (res.ok) {
+                        window.location.href = 'home.html';
+                    }
+                })
+                .catch(() => { /* no session / offline — stay on splash */ });
+        })();
+
         (function() {
             // makes the logo button behave like a professional link (but you can replace # with actual URL)
             const btn = document.querySelector('.logo-button');
